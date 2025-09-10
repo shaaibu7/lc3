@@ -40,8 +40,25 @@ enum R_COND {
 
 const MEMORY_MAX: usize = 1 << 16 as usize;
 const REGISTER_MAX: usize = 10;
+const PC_START: u16 = 0x3000;
 
 
+
+trait MemoryTraits {
+    fn mem_read(&self, offset: u16) -> Option<u16>;
+    fn new() -> Self;
+}
+
+impl MemoryTraits for Memory {
+    fn mem_read(&self, offset: u16) -> Option<u16> {
+        let instr: u16 = self.locations[offset as usize];
+        Some(instr)
+    }
+
+    fn new() -> Self {
+        Memory { locations: [0; MEMORY_MAX] }
+    }
+}
 #[derive(Debug)]
 struct Memory {
     locations: [u16; MEMORY_MAX]
@@ -54,6 +71,18 @@ struct Reg {
 
 
 fn main() {
-   let data = R_COND::NEG as u16;
-    println!("{data:?}");
+   let instr: u16 = 0b0010_000_001_0_00_001;
+//    let opcode: u16 = instr as u16 >> 12;
+//    println!("{:016b}", opcode);
+
+    let mut memory = Memory::new();
+    memory.locations[PC_START as usize] = instr;
+    let opcode = memory.mem_read(PC_START).unwrap() >> 12;
+    println!("{:016b}", opcode);
+
+    let exec = match opcode {
+        1 => println!("addition op"),
+        2 => println!("load op"),
+        _ => println!("default op...")
+    };
 }
